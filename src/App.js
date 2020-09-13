@@ -210,7 +210,7 @@ class App extends Component {
       case 'ztm':
         return (
             <div className="tc">
-            <h2 className="f1 center mt5">Love you all ZTM Family ❤️!</h2>
+            <h2 className="f1 center mt5">AHHHHHHHHH HEROKU AAAAAAAAAAAAAAAAAAAAAAAAAAH Family ❤️!</h2>
             <h4>Just thanks for all!</h4>
             <img src="https://images.ctfassets.net/aq13lwl6616q/6MNZFJQPNCXM7lM7RsCdug/98399875596dd1f867c92c25ed16727a/SHAPE-ONLY.png" alt=""/>
             <p className="pointer grow" onClick={() => onRouteChange('signin')}>Go back to Sign In</p>
