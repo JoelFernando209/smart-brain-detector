@@ -2,7 +2,7 @@ import React from 'react';
 import './ImageLinkForm.css';
 import 'tachyons';
 
-const ImageLinkForm = ({ onInputChange, onClick }) => {
+const ImageLinkForm = ({ onInputChange, onClick, onTest }) => {
   return (
     <div>
       <p className="f3 tc">
@@ -12,6 +12,7 @@ const ImageLinkForm = ({ onInputChange, onClick }) => {
         <div className="form center pa4 br3 shadow-5 tc">
           <input className="f3 pa2 dib w-70 center" type="text" onChange={onInputChange} />
           <button className="w-30 grow f4 link ph3 pv2 dib white bg-light-purple shadow-0" onClick={onClick}>Detect</button>
+          <button className="w-30 grow f4 link ph3 pv2 dib white bg-light-purple shadow-0" onClick={onTest}>Test</button>
         </div>
       </div>
     </div>

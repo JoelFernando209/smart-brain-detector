@@ -9,11 +9,6 @@ import Register from './components/Register/Register.js';
 import Secret from './components/Secret/Secret.js';
 import './App.css';
 import Particles from 'react-particles-js';
-import Clarifai from 'clarifai';
-
-const app = new Clarifai.App({
- apiKey: 'c9917e7c78d64ee49fd19d1faf63f0dd'
-});
 
 const particleOptions = {
   "particles": {
@@ -126,6 +121,20 @@ const particleOptions = {
   "retina_detect": true
 };
 
+const initialState = {
+      input: '',
+      imageUrl: '',
+      boxes: [],
+      inputSecret: '',
+      route: 'signin',
+      user: {
+        id: '',
+        name: '',
+        email: '',
+        entries: 0,
+        joined: ''
+      }
+    };
 
 class App extends Component {
   constructor(){
@@ -135,8 +144,21 @@ class App extends Component {
       imageUrl: '',
       boxes: [],
       inputSecret: '',
-      route: 'signin'
+      route: 'signin',
+      user: initialState
     }
+  }
+  
+  loadUser = (data) => {
+    this.setState({
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined: data.joined
+      }
+    })
   }
   
   calculateFaceLocation = (data) => {
@@ -146,8 +168,6 @@ class App extends Component {
     
     const width = Number(image.width);
     const height = Number(image.height);
-    
-    console.log(width, height);
     
     return clarifaiFace.map(face => {
       return {
@@ -171,13 +191,40 @@ class App extends Component {
     this.setState({inputSecret: event.target.value})
   }
   
+  onTest = (req, res, next) => {
+    this.setState({input: 'https://static2.lasprovincias.es/www/multimedia/201903/09/media/cortadas/montaneros-muertos-kkqB-U70863773813CPG-624x385@RC.jpg'});
+    
+    this.setState({imageUrl: this.state.input})
+  }
+  
   onSubmit = () => {
     this.setState({imageUrl: this.state.input})
-    app.models.predict(
-      Clarifai.FACE_DETECT_MODEL,
-      this.state.input)
-    .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
-    .catch(err => console.log('Clarifai Error: ', err));
+    fetch('https://whispering-beyond-64828.herokuapp.com/imageurl', {
+          method: 'post',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            input: this.state.input
+          })
+        })
+    .then(res => res.json())
+    .then(response => {
+      if(response) {
+        fetch('https://whispering-beyond-64828.herokuapp.com/image', {
+          method: 'put',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            id: this.state.user.id
+          })
+        })
+        .then(res => res.json())
+        .then(count => {
+          this.setState(Object.assign(this.state.user, {entries: count}))
+        })
+        .catch(err => console.warn('Error :('))
+      }
+      this.displayFaceBox(this.calculateFaceLocation(response))
+    })
+    .catch(err => console.log('There was an error, please try again'));
   }
   
   onSecretSubmit = () => {
@@ -185,7 +232,11 @@ class App extends Component {
   }
   
   onRouteChange = (route) => {
-    this.setState({route: route})
+    if(this.state.route === 'signout'){
+      this.setState(initialState)
+    } else {
+      this.setState({route: route})
+    }
   }
   
   renderRoute = () => {
@@ -193,9 +244,20 @@ class App extends Component {
     const { boxes, imageUrl } = this.state;
     switch (this.state.route) {
       case 'signin':
-        return <SignIn onRouteChange={onRouteChange}/>
+        return <SignIn
+                loadUser={this.loadUser}
+                onRouteChange={onRouteChange}
+                />
+      case 'signout':
+        return <SignIn
+                loadUser={this.loadUser}
+                onRouteChange={onRouteChange}
+                />
       case 'register':
-        return <Register onRouteChange={onRouteChange}/>
+        return <Register
+                onRouteChange={onRouteChange}
+                loadUser={this.loadUser}
+                />
       case 'secretRoute':
         return <Secret onRouteChange={onRouteChange}/>
       case 'secretTreasure':
@@ -223,10 +285,14 @@ class App extends Component {
               onRouteChange={onRouteChange}
             />
             <Logo />
-            <Rank />
+            <Rank
+              name={this.state.user.name}
+              entries={this.state.user.entries}
+            />
             <ImageLinkForm
               onClick= {this.onSubmit}
               onInputChange = {this.onInputChange}
+              onTest={this.onTest}
             />
             <FaceRecognition
               onSecretChange={this.onSecretChange}
